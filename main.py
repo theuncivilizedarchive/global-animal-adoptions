@@ -4,6 +4,7 @@ import sqlite3
 import os
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
 
 from langdetect import detect
 from deep_translator import GoogleTranslator
@@ -164,6 +165,19 @@ def detect_country(url):
             return c
     return "UNK"
 
+# ========================
+# CLEAN HTML
+# =======================
+def clean_html(text: str) -> str:
+    if not text:
+        return ""
+    # Converte HTML -> testo pulito
+    soup = BeautifulSoup(text, "html.parser")
+    cleaned = soup.get_text(" ", strip=True)
+    # pulizie extra
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
+
 # ======================
 # HASHTAGS
 # ======================
@@ -221,7 +235,8 @@ def main():
             if already_sent(ad_id):
                 continue
 
-            raw = getattr(e, "summary", e.title)
+            raw_html = getattr(e, "summary", "") or getattr(e, "description", "") or e.title
+raw = clean_html(raw_html)
             species = detect_species(e.title, raw)
             country = detect_country(e.link)
 
@@ -253,4 +268,5 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 

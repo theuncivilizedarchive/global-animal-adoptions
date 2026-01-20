@@ -1,4 +1,4 @@
-# 🌍 Global Animal Adoptions Bot
+# 🌍 Global Animal Adoptions
 
 An automated bot that collects **animal adoption listings from around the world** and publishes them to a Telegram channel in **multiple languages**.
 

@@ -102,6 +102,67 @@ All content belongs to the original shelters and organizations.
 If you manage a shelter and want your content removed or improved, please get in touch.
 
 ---
+## 🏠 How to Add Your Shelter
+
+If you manage an animal shelter, rescue group, or foster network and would like your adoption posts to appear on **Global Animal Adoptions**, you’re very welcome to join.
+
+### ✅ Preferred Option: RSS Feed
+The easiest way to be included is to provide a **public RSS feed** that contains your adoption listings.
+
+Examples:
+- WordPress sites usually have a feed at `/feed`
+- Dedicated adoption platforms often provide RSS automatically
+
+Please make sure:
+- The feed contains **real adoption posts**
+- Each post has a **title, description, and link**
+- Images are included if possible (optional but recommended)
+
+---
+
+### 🌐 Websites Without RSS
+If your website does **not** provide an RSS feed but has a public page listing adoptable animals, it can still be included using **HTML scraping**.
+
+In this case, please provide:
+- The exact URL of the adoption page
+- Confirmation that scraping is allowed by your website’s terms
+- A consistent page structure (list of animals, profiles, etc.)
+
+---
+
+### 🚫 What Is Not Accepted
+To keep the channel clean and useful, the following are **not included**:
+- Blog posts or technical updates
+- News articles or announcements
+- Fundraising-only posts
+- Event-only pages
+
+The bot automatically filters non-adoption content.
+
+---
+
+### 📩 How to Request Inclusion
+
+To request adding your shelter, please:
+- Open a **GitHub Issue** in this repository  
+  **or**
+- Contact the project owner via email 📧 **angela.rossi393@gmail.com**
+
+Include:
+- Shelter name
+- Website URL
+- RSS feed URL (if available)
+- Country
+- Species you handle (dogs, cats, others)
+
+---
+
+### ❤️ Our Mission
+This project exists to **help animals find homes**, not for profit or promotion.
+
+If you represent a shelter and would like improvements, corrections, or removal of your content, just reach out — we’re happy to help.
+
+---
 
 ## 🐶🐱 Let’s help animals find a home
 

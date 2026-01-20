@@ -1,0 +1,27 @@
+import sqlite3
+
+
+
+conn = sqlite3.connect("ads.db")
+
+cur = conn.cursor()
+
+
+
+cur.execute("""
+
+CREATE TABLE IF NOT EXISTS ads (
+
+    id TEXT PRIMARY KEY,
+
+    url TEXT
+
+)
+
+""")
+
+
+
+conn.commit()
+
+conn.close()

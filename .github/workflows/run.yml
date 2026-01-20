@@ -16,6 +16,12 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Restore ads.db cache
+        uses: actions/cache@v3
+        with:
+          path: ads.db
+          key: adsdb-v1    
+    
       - name: Install dependencies
         run: pip install -r requirements.txt
 
@@ -23,3 +29,10 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: python main.py
+
+      - name: Save ads.db cache
+        uses: actions/cache@v3
+        with:
+          path: ads.db
+          key: adsdb-v1
+  

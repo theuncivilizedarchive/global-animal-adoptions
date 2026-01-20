@@ -7,7 +7,15 @@ from deep_translator import GoogleTranslator
 from telegram import Bot
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL = "@animaladoptionsbot"  # il tuo canale
+CHANNEL = "@globalanimaladoptions"  # il tuo canale
+
+bot.send_message(
+    chat_id=CHANNEL,
+    text="✅ Test: il bot riesce a scrivere nel canale"
+)
+
+conn = sqlite3.connect("ads.db")
+cur = conn.cursor()
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN non trovato. Imposta il secret BOT_TOKEN su GitHub Actions.")
@@ -171,3 +179,4 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+

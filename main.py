@@ -47,6 +47,7 @@ FEEDS = [
     "https://www.petlove.com.br/feed",
     "https://adoptapet.mx/feed",
     "https://www.tiervermittlung.de/feed",
+    "https://enpamira.com/index.php/feed"
 ]
 
 # Pagine senza RSS (scraping)
@@ -500,4 +501,5 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 

@@ -66,7 +66,8 @@ FEEDS = [
     "https://www.dogstrust.org.uk/feed",
     "https://www.petlove.com.br/feed",
     "https://adoptapet.mx/feed",
-    "https://www.tiervermittlung.de/feed"
+    "https://www.tiervermittlung.de/feed",
+    "https://enpamira.com/index.php/feed/"
 ]
 
 # ======================
@@ -268,5 +269,6 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 

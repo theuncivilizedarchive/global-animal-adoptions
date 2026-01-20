@@ -30,7 +30,6 @@ SLEEP_BETWEEN_POSTS_SEC = 1
 FEEDS = [
     "https://www.petfinder.com/rss/search/",
     "https://www.adoptapet.com/adoptable-pets/rss",
-    # Se vuoi, puoi tenere RescueGroups ma ora filtriamo i post non-adozione
     "https://rescuegroups.org/feed/",
     "https://www.petrescue.com.au/rss/adoptable",
     "https://www.secondechance.org/feed",
@@ -501,3 +500,4 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+

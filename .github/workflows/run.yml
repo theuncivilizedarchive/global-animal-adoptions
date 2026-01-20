@@ -2,8 +2,8 @@ name: Global Animal Adoptions Bot
 
 on:
   schedule:
-    - cron: "*/45 * * * *"   # ogni 45 minuti
-  workflow_dispatch:         # avvio manuale
+    - cron: "*/5 * * * *"  # ogni 5 minuti
+  workflow_dispatch:
 
 jobs:
   run:

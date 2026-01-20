@@ -15,11 +15,11 @@ from telegram import Bot
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = "@globalanimaladoptions"  # username del CANALE
 
-# Filtri opzionali (lasciali vuoti per pubblicare tutto)
+# Filtri opzionali (vuoti per pubblicare tutto)
 ALLOWED_SPECIES = set()     # es: {"dog", "cat"}
 ALLOWED_COUNTRIES = set()   # es: {"IT", "ES"}
 
-MAX_POSTS_PER_RUN = 10      # anti-spam
+MAX_POSTS_PER_RUN = 20      # anti-spam
 
 # ======================
 # BOT
@@ -253,3 +253,4 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+

@@ -18,20 +18,19 @@ from telegram import Bot
 # CONFIG
 # ======================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL = "@globalanimaladoptions"  # <-- username del canale (non del bot)
+CHANNEL = "@globalanimaladoptions"  # username del CANALE
 
 # Filtri opzionali (lascia vuoti per pubblicare tutto)
 ALLOWED_SPECIES = set()     # es: {"dog", "cat"}
 ALLOWED_COUNTRIES = set()   # es: {"IT", "ES"}
 
-# Anti-spam / rate control
-MAX_POSTS_PER_RUN = 8       # quanti post max per run (con cron ogni 5 min, 3-8 è ok)
-SLEEP_BETWEEN_POSTS_SEC = 1 # piccola pausa
+MAX_POSTS_PER_RUN = 8
+SLEEP_BETWEEN_POSTS_SEC = 1
 
-# RSS feeds
 FEEDS = [
     "https://www.petfinder.com/rss/search/",
     "https://www.adoptapet.com/adoptable-pets/rss",
+    # Se vuoi, puoi tenere RescueGroups ma ora filtriamo i post non-adozione
     "https://rescuegroups.org/feed/",
     "https://www.petrescue.com.au/rss/adoptable",
     "https://www.secondechance.org/feed",
@@ -51,7 +50,7 @@ FEEDS = [
     "https://www.tiervermittlung.de/feed",
 ]
 
-# Pagine da scrappare (senza RSS)
+# Pagine senza RSS (scraping)
 SCRAPE_SOURCES = [
     ("https://www.rifugioapachioggia.it/centro-adozioni", "dog", "IT"),
     ("https://www.rifugioapachioggia.it/adotta-un-micio", "cat", "IT"),
@@ -89,7 +88,7 @@ def save_ad(ad_id: str, url: str) -> None:
     conn.commit()
 
 # ======================
-# TEXT CLEANING
+# CLEANING / WP footer
 # ======================
 IMG_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.I)
 
@@ -102,7 +101,6 @@ def clean_html(html: str) -> str:
     return text
 
 def remove_wp_footer(text: str) -> str:
-    """Taglia le code WordPress tipo 'Continue reading' / 'appeared first on' ecc."""
     if not text:
         return ""
     cut_markers = [
@@ -127,6 +125,7 @@ def translate_all(text: str):
     text = (text or "").strip()
     if not text:
         return "", "", "", "en"
+
     try:
         lang = detect(text)
     except:
@@ -138,7 +137,45 @@ def translate_all(text: str):
     return en, it, es, lang
 
 # ======================
-# SPECIES + COUNTRY DETECTION
+# ADOPTION FILTER (anti blog/news)
+# ======================
+ADOPTION_POSITIVE = [
+    # EN
+    "adopt", "adoption", "available for adoption", "looking for a home", "needs a home", "forever home",
+    "foster", "rescue", "shelter",
+    # IT
+    "adozione", "adotta", "cerca casa", "cercano casa", "in adozione", "stallo", "canile", "gattile", "rifugio",
+    # ES
+    "adopción", "adopta", "en adopción", "busca hogar", "buscan hogar", "acogida", "refugio",
+]
+
+ADOPTION_NEGATIVE = [
+    # EN
+    "blog", "post", "newsletter", "update", "announcement", "press", "donate", "fundraiser", "event",
+    "we've been working", "release", "version",
+    # IT
+    "blog", "articolo", "post", "newsletter", "aggiornamento", "comunicato", "evento", "raccolta fondi", "donazione",
+    "stiamo lavorando", "versione",
+    # ES
+    "blog", "artículo", "publicación", "boletín", "actualización", "evento", "recaudación", "donación",
+    "hemos estado trabajando", "versión",
+]
+
+def looks_like_adoption(title: str, text: str) -> bool:
+    hay = f"{title} {text}".lower()
+    pos = sum(1 for k in ADOPTION_POSITIVE if k in hay)
+    neg = sum(1 for k in ADOPTION_NEGATIVE if k in hay)
+
+    # chiaramente news/blog
+    if neg >= 2 and pos == 0:
+        return False
+    # almeno un segnale adozione
+    if pos >= 1:
+        return True
+    return False
+
+# ======================
+# SPECIES + COUNTRY
 # ======================
 SPECIES_KEYWORDS = {
     "dog": ["dog", "puppy", "cane", "cucciolo", "perro", "cachorro", "chien", "chiot", "hund", "welpe"],
@@ -149,11 +186,11 @@ SPECIES_KEYWORDS = {
 }
 
 DOMAIN_HINTS = [
+    ("rifugioapachioggia.it", "IT"),
     ("enpa.org", "IT"),
     ("oipa.org", "IT"),
     ("legadelcane.it", "IT"),
     ("gattileitaliano.it", "IT"),
-    ("rifugioapachioggia.it", "IT"),
     ("protectoras.org", "ES"),
     ("fundacion-affinity.org", "ES"),
     ("adoptame.com", "ES"),
@@ -171,16 +208,7 @@ DOMAIN_HINTS = [
     ("rescuegroups.org", "US"),
 ]
 
-TLD_TO_COUNTRY = {
-    "it": "IT",
-    "es": "ES",
-    "fr": "FR",
-    "uk": "UK",
-    "de": "DE",
-    "mx": "MX",
-    "au": "AU",
-    "br": "BR",
-}
+TLD_TO_COUNTRY = {"it": "IT", "es": "ES", "fr": "FR", "uk": "UK", "de": "DE", "mx": "MX", "au": "AU", "br": "BR"}
 
 def detect_species(title: str, text: str, default: str = "other") -> str:
     hay = f"{title} {text}".lower()
@@ -200,8 +228,7 @@ def detect_country(url: str) -> str:
             return cc
     parts = netloc.split(".")
     if len(parts) >= 2:
-        tld = parts[-1]
-        return TLD_TO_COUNTRY.get(tld, "UNK")
+        return TLD_TO_COUNTRY.get(parts[-1], "UNK")
     return "UNK"
 
 # ======================
@@ -217,8 +244,7 @@ def build_hashtags(species: str, country: str, lang: str) -> str:
         tags.append(f"#{lang.lower()}")
     tags += ["#adoption", "#rescue"]
     # de-dup
-    seen = set()
-    out = []
+    seen, out = set(), []
     for t in tags:
         if t not in seen:
             seen.add(t)
@@ -226,10 +252,9 @@ def build_hashtags(species: str, country: str, lang: str) -> str:
     return " ".join(out)
 
 # ======================
-# IMAGE HANDLING
+# IMAGES
 # ======================
 def pick_image_from_feed(entry):
-    """Prende immagine se il feed la fornisce (media/enclosure o <img> in summary)."""
     if hasattr(entry, "media_content") and entry.media_content:
         for m in entry.media_content:
             u = m.get("url")
@@ -256,13 +281,12 @@ def pick_image_from_feed(entry):
     return None
 
 def download_image(url: str, referer: str):
-    """Scarica immagine come bytes (evita 403 se Telegram non può hotlinkare)."""
     r = requests.get(url, headers={**UA_HEADERS, "Referer": referer}, timeout=30)
     r.raise_for_status()
     return r.content
 
 # ======================
-# SCRAPING: Rifugio APA Chioggia
+# SCRAPING APA CHIOGGIA
 # ======================
 def fetch_html(url: str) -> str:
     r = requests.get(url, headers={**UA_HEADERS, "Referer": url}, timeout=30)
@@ -270,13 +294,6 @@ def fetch_html(url: str) -> str:
     return r.text
 
 def scrape_rifugio_page(url: str, default_species: str):
-    """
-    Estrae animali da pagine tipo:
-    - /centro-adozioni
-    - /adotta-un-micio
-    Strategia: usa <article> e considera H2/H3 come "nome animale",
-    poi raccoglie paragrafi e immagini fino al prossimo nome.
-    """
     html = fetch_html(url)
     soup = BeautifulSoup(html, "html.parser")
 
@@ -290,12 +307,9 @@ def scrape_rifugio_page(url: str, default_species: str):
             title = re.sub(r"\s+", " ", title).strip()
             if not title:
                 continue
-
-            # evita titoli generici
             if title.lower() in {"centro adozioni", "adotta un micio", "cani cercafamiglia"}:
                 continue
 
-            # salva precedente
             if current and current["name"] and (current["desc"] or current["images"]):
                 animals.append(current)
 
@@ -309,9 +323,6 @@ def scrape_rifugio_page(url: str, default_species: str):
             txt = el.get_text(" ", strip=True)
             txt = re.sub(r"\s+", " ", txt).strip()
             if not txt:
-                continue
-            # elimina footer/contatti ripetuti se presenti
-            if "rifugio" in txt.lower() and "chioggia" in txt.lower() and len(txt) < 40:
                 continue
             current["desc"] = (current["desc"] + "\n" + txt).strip()
 
@@ -357,26 +368,22 @@ def build_message(title: str, species: str, country: str, en: str, it: str, es: 
 """
 
 def send_post(title: str, message: str, image_url: str | None, image_referer: str | None):
-    """
-    Se c'è immagine:
-    - prova a inviare come URL
-    - se fallisce, scarica bytes e invia
-    - se fallisce, manda testo
-    """
     try:
         if image_url:
+            # prova invio diretto url
             try:
                 bot.send_photo(chat_id=CHANNEL, photo=image_url, caption=message)
-                print(f"[OK] Foto via URL: {title}")
+                print(f"[OK] Foto URL: {title}")
                 return
             except Exception as e_url:
                 print(f"[WARN] Foto URL fallita: {title} | {e_url}")
 
+            # fallback: scarica bytes
             if image_referer:
                 try:
                     b = download_image(image_url, referer=image_referer)
                     bot.send_photo(chat_id=CHANNEL, photo=BytesIO(b), caption=message)
-                    print(f"[OK] Foto via bytes: {title}")
+                    print(f"[OK] Foto bytes: {title}")
                     return
                 except Exception as e_bytes:
                     print(f"[WARN] Foto bytes fallita: {title} | {e_bytes}")
@@ -392,7 +399,7 @@ def send_post(title: str, message: str, image_url: str | None, image_referer: st
 def main():
     posted = 0
 
-    # --- 1) Scraping pagine senza feed (APA Chioggia)
+    # --- 1) Scraping pagine APA Chioggia
     for page_url, default_species, fixed_country in SCRAPE_SOURCES:
         if posted >= MAX_POSTS_PER_RUN:
             break
@@ -407,14 +414,16 @@ def main():
             if posted >= MAX_POSTS_PER_RUN:
                 break
 
-            # ID stabile: pagina + nome
             ad_id = hashlib.sha256((item["page"] + "|" + item["name"]).encode()).hexdigest()
             if already_sent(ad_id):
                 continue
 
-            raw = item["desc"] or item["name"]
-            raw = clean_html(raw)
+            raw = clean_html(item["desc"] or item["name"])
             raw = remove_wp_footer(raw)
+
+            # filtro adozioni
+            if not looks_like_adoption(item["name"], raw):
+                continue
 
             species = item["species"] or "other"
             country = fixed_country or "UNK"
@@ -427,19 +436,11 @@ def main():
             en, it, es, lang = translate_all(raw)
             hashtags = build_hashtags(species, country, lang)
 
-            msg = build_message(
-                title=item["name"],
-                species=species,
-                country=country,
-                en=en,
-                it=it,
-                es=es,
-                url=item["page"],
-                hashtags=hashtags
-            )
+            msg = build_message(item["name"], species, country, en, it, es, item["page"], hashtags)
 
             img = item["images"][0] if item["images"] else None
             send_post(item["name"], msg, img, image_referer=item["page"])
+
             save_ad(ad_id, item["page"] + "#" + item["name"])
             posted += 1
             time.sleep(SLEEP_BETWEEN_POSTS_SEC)
@@ -471,6 +472,10 @@ def main():
             raw = clean_html(raw_html)
             raw = remove_wp_footer(raw)
 
+            # filtro adozioni
+            if not looks_like_adoption(title, raw):
+                continue
+
             species = detect_species(title, raw, default="other")
             country = detect_country(link)
 
@@ -482,16 +487,7 @@ def main():
             en, it, es, lang = translate_all(raw)
             hashtags = build_hashtags(species, country, lang)
 
-            msg = build_message(
-                title=title.strip(),
-                species=species,
-                country=country,
-                en=en,
-                it=it,
-                es=es,
-                url=link,
-                hashtags=hashtags
-            )
+            msg = build_message(title.strip(), species, country, en, it, es, link, hashtags)
 
             image_url = pick_image_from_feed(e)
             send_post(title, msg, image_url, image_referer=link)

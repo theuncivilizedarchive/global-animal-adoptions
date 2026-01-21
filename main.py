@@ -29,7 +29,6 @@ SLEEP_BETWEEN_POSTS_SEC = 1
 
 FEEDS = [
     "https://www.petfinder.com/rss/search/",
-    "https://www.adoptapet.com/adoptable-pets/rss",
     "https://rescuegroups.org/feed/",
     "https://www.petrescue.com.au/rss/adoptable",
     "https://www.secondechance.org/feed",
@@ -41,7 +40,7 @@ FEEDS = [
     "https://www.oipa.org/feed/",
     "https://www.legadelcane.it/feed/",
     "https://www.gattileitaliano.it/feed/",
-    "https://www.la-spa.fr/rss/",
+    "https://ww.la-spa.fr/rss/",
     "https://www.cats.org.uk/rss/adoptable",
     "https://www.dogstrust.org.uk/feed",
     "https://www.petlove.com.br/feed",
@@ -54,6 +53,11 @@ FEEDS = [
 SCRAPE_SOURCES = [
     ("https://www.rifugioapachioggia.it/centro-adozioni", "dog", "IT"),
     ("https://www.rifugioapachioggia.it/adotta-un-micio", "cat", "IT"),
+     ("https://www.adotta.me/animali", None, "IT"),
+    ("https://www.adoptapet.com/dog-adoption", "dog", "EN"),
+    ("https://www.adoptapet.com/adoptable-pets/rss", "cat", "EN"),
+    ("https://www.adoptapet.com/other-pet-adoption", None, "EN"),
+
 ]
 
 UA_HEADERS = {
@@ -501,6 +505,7 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 
 

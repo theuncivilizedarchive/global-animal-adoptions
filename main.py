@@ -24,7 +24,7 @@ CHANNEL = "@globalanimaladoptions"  # username del CANALE
 ALLOWED_SPECIES = set()     # es: {"dog", "cat"}
 ALLOWED_COUNTRIES = set()   # es: {"IT", "ES"}
 
-MAX_POSTS_PER_RUN = 8
+MAX_POSTS_PER_RUN = 3
 SLEEP_BETWEEN_POSTS_SEC = 1
 
 FEEDS = [
@@ -501,5 +501,6 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 

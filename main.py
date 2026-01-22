@@ -474,26 +474,22 @@ def main():
             # filtro adozioni
             if not looks_like_adoption(item["name"], raw):
                 continue
-
             species = item["species"] or "other"
             country = fixed_country or "UNK"
-
             if ALLOWED_SPECIES and species not in ALLOWED_SPECIES:
                 continue
             if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
                 continue
-
-  en, it, es, fr, de, lang = translate_all(raw)
-hashtags = build_hashtags(species, country, lang)
-
-msg = build_message(
-    item["name"],
-    species,
-    country,
-    en, it, es, fr, de,
-    item["page"],
-    hashtags
-)
+            en, it, es, fr, de, lang = translate_all(raw)
+            hashtags = build_hashtags(species, country, lang)
+            msg = build_message(
+                item["name"],
+                species,
+                country,
+                en, it, es, fr, de,
+                item["page"],
+                hashtags
+            )
 
 
 img = item["images"][0] if item["images"] else None
@@ -566,3 +562,4 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+

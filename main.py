@@ -483,17 +483,18 @@ def main():
             if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
                 continue
 
-            en, it, es, fr, de, lang = translate_all(raw)
-            hashtags = build_hashtags(species, country, lang)
+  en, it, es, fr, de, lang = translate_all(raw)
+hashtags = build_hashtags(species, country, lang)
 
-                      msg = build_message(
-                      item["name"],
-                      species,
-                      country,
-                      en, it, es, fr, de,
-                      item["page"],
-                      hashtags
-                                           )
+msg = build_message(
+    item["name"],
+    species,
+    country,
+    en, it, es, fr, de,
+    item["page"],
+    hashtags
+)
+
 
 img = item["images"][0] if item["images"] else None
 send_post(item["name"], msg, img, image_referer=item["page"])
@@ -566,6 +567,7 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 
 

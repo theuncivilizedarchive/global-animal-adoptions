@@ -28,25 +28,24 @@ MAX_POSTS_PER_RUN = 3
 SLEEP_BETWEEN_POSTS_SEC = 1
 
 FEEDS = [
-    "https://www.petfinder.com/rss/search/",
-    "https://rescuegroups.org/feed/",
-    "https://www.petrescue.com.au/rss/adoptable",
-    "https://www.secondechance.org/feed",
     "https://www.rspca.org.uk/adopt-pets/feed",
     "https://www.adoptame.com/feed",
     "https://protectoras.org/feed",
     "https://www.fundacion-affinity.org/feed",
     "https://www.enpa.org/feed/",
-    "https://www.oipa.org/feed/",
-    "https://www.legadelcane.it/feed/",
-    "https://www.gattileitaliano.it/feed/",
-    "https://ww.la-spa.fr/rss/",
+    "https://www.oipa.org/international/feed/",
     "https://www.cats.org.uk/rss/adoptable",
     "https://www.dogstrust.org.uk/feed",
     "https://www.petlove.com.br/feed",
     "https://adoptapet.mx/feed",
     "https://www.tiervermittlung.de/feed",
-    "https://enpamira.com/index.php/feed"
+    "https://enpamira.com/index.php/feed",
+    "https://www.dogsblog.com/feed/",
+    "https://www.arlboston.org/feed/",
+    "https://adopt.scarscare.ca/feed/",
+    "https://www.animalleague.org/blog/feed/",
+    "https://tears.org.za/feed/",
+    "https://www.dogsblog.com/feed/",
 ]
 
 # Pagine senza RSS (scraping)
@@ -57,7 +56,18 @@ SCRAPE_SOURCES = [
     ("https://www.adoptapet.com/dog-adoption", "dog", "EN"),
     ("https://www.adoptapet.com/adoptable-pets/rss", "cat", "EN"),
     ("https://www.adoptapet.com/other-pet-adoption", None, "EN"),
-
+    ("https://www.petfinder.com/search/dogs-for-adoption/", "dog", "EN"),
+    ("https://www.petfinder.com/search/cats-for-adoption/", "cat", "EN"),
+    ("https://www.petfinder.com/search/rabbits-for-adoption/", "rabbit", "EN"),
+    ("https://www.petfinder.com/search/small-furry-for-adoption/", None, "EN"),
+    ("https://www.petfinder.com/search/horses-for-adoption/", "horse", "EN"),
+    ("https://www.petfinder.com/search/birds-for-adoption/", "bird", "EN"),
+    ("https://www.petfinder.com/search/scales-fins-others-for-adoption/", None, "EN"),
+    ("https://www.petfinder.com/search/barnyard-for-adoption", None, "EN"),
+    ("https://www.petrescue.com.au/listings/search", None, "EN"),
+    ("https://www.secondechance.org/animal/recherche?department=&species=1", "dog","FR"),
+    ("https://www.secondechance.org/animal/recherche?department=&species=2", "cat", "FR"),
+    ("https://www.dogstrust.org.uk/rehoming/dogs?page=0&sort=NEW&liveWithCats=false&liveWithDogs=false&liveWithPreschool=false&liveWithPrimary=false&liveWithSecondary=false&noReserved=false&isUnderdog=false&currentDistance=1000", "dog", "EN"),
 ]
 
 UA_HEADERS = {
@@ -128,7 +138,7 @@ def remove_wp_footer(text: str) -> str:
 def translate_all(text: str):
     text = (text or "").strip()
     if not text:
-        return "", "", "", "en"
+        return "", "", "", "", "", "en"
 
     try:
         lang = detect(text)
@@ -138,7 +148,10 @@ def translate_all(text: str):
     en = GoogleTranslator(source=lang, target="en").translate(text)
     it = GoogleTranslator(source="en", target="it").translate(en)
     es = GoogleTranslator(source="en", target="es").translate(en)
-    return en, it, es, lang
+    fr = GoogleTranslator(source="en", target="fr").translate(en)
+    de = GoogleTranslator(source="en", target="de").translate(en)
+
+    return en, it, es, fr, de, lang
 
 # ======================
 # ADOPTION FILTER (anti blog/news)
@@ -151,6 +164,10 @@ ADOPTION_POSITIVE = [
     "adozione", "adotta", "cerca casa", "cercano casa", "in adozione", "stallo", "canile", "gattile", "rifugio",
     # ES
     "adopción", "adopta", "en adopción", "busca hogar", "buscan hogar", "acogida", "refugio",
+    # FR 
+    "adoption", "adopter", "à adopter", "en adoption", "cherche une famille", "cherche un foyer", "famille pour la vie", "famille définitive", "refuge", "association", "accueil", "famille d'accueil",
+    # DE 
+    "adoption", "adoptieren", "zur adoption", "sucht ein zuhause", "suchen ein zuhause", "braucht ein zuhause", "für immer zuhause", "tierheim", "tierschutz", "verein", "pflegestelle", "in pflege",
 ]
 
 ADOPTION_NEGATIVE = [
@@ -163,6 +180,10 @@ ADOPTION_NEGATIVE = [
     # ES
     "blog", "artículo", "publicación", "boletín", "actualización", "evento", "recaudación", "donación",
     "hemos estado trabajando", "versión",
+    # FR 
+    "blog", "article", "publication", "bulletin", "actualité", "mise à jour", "communiqué", "événement", "don", "collecte de fonds", "nous travaillons", "version",
+    # DE 
+    "blog", "artikel", "beitrag", "newsletter", "aktualisierung", "ankündigung", "presse", "veranstaltung", "spende", "spendenaktion", "wir arbeiten", "version",
 ]
 
 def looks_like_adoption(title: str, text: str) -> bool:
@@ -187,6 +208,14 @@ SPECIES_KEYWORDS = {
     "rabbit": ["rabbit", "coniglio", "conejo", "lapin", "kaninchen"],
     "bird": ["bird", "uccello", "ave", "pájaro", "oiseau", "vogel"],
     "horse": ["horse", "cavallo", "caballo", "cheval", "pferd"],
+    "guinea_pig": [ "guinea pig", "guinea-pig", "cavia", "porcellino d india", "porcellino d'india", "cobaye", "meerschweinchen" ],
+    "rodent": [ "rodent", "criceto", "hamster", "topo", "ratto", "rattus", "mouse", "mice", "rat" ],
+    "barnyard": [ "barnyard", "farm animal", "fattoria", "animali da fattoria", "mucca", "cow", "capra", "goat", "pecora", "sheep", "maiale", "pig", "asino", "donkey" ],
+    "reptile": [ "reptile", "rettile", "serpente", "snake", "lucertola", "lizard", "tartaruga", "turtle", "tortoise", "geco", "gecko" ],
+    "fish": [ "fish", "pesce", "pez", "poisson", "fisch" ],
+    "ferret": [ "ferret", "furetto", "furet", "iltis" ],
+    "other": [ "other pet", "altro animale", "misc", "various" ],
+    None: ["dog", "puppy", "cane", "cucciolo", "perro", "cachorro", "chien", "chiot", "hund", "welpe","cat", "kitten", "gatto", "gattino", "gato", "chat", "chaton", "katze", "kätzchen", "rabbit", "coniglio", "conejo", "lapin", "kaninchen", "bird", "uccello", "ave", "pájaro", "oiseau", "vogel", "guinea pig", "guinea-pig", "cavia", "porcellino d india", "porcellino d'india", "cobaye", "meerschweinchen", "rodent", "criceto", "hamster", "topo", "ratto", "rattus", "mouse", "mice", "rat","barnyard", "farm animal", "fattoria", "animali da fattoria", "mucca", "cow", "capra", "goat", "pecora", "sheep", "maiale", "pig", "asino", "donkey","reptile", "rettile", "serpente", "snake", "lucertola", "lizard", "tartaruga", "turtle", "tortoise", "geco", "gecko","fish", "pesce", "pez", "poisson", "fisch", "ferret", "furetto", "furet", "iltis", "other pet", "altro animale", "misc", "various"]
 }
 
 DOMAIN_HINTS = [
@@ -353,7 +382,18 @@ def scrape_rifugio_page(url: str, default_species: str):
 # ======================
 # POSTING
 # ======================
-def build_message(title: str, species: str, country: str, en: str, it: str, es: str, url: str, hashtags: str) -> str:
+def build_message(
+    title: str,
+    species: str,
+    country: str,
+    en: str,
+    it: str,
+    es: str,
+    fr: str,
+    de: str,
+    url: str,
+    hashtags: str
+) -> str:
     return f"""🐾 {title}
 🏷 {species.upper()} • 🌍 {country}
 
@@ -365,6 +405,12 @@ def build_message(title: str, species: str, country: str, en: str, it: str, es: 
 
 🇪🇸
 {es}
+
+🇫🇷
+{fr}
+
+🇩🇪
+{de}
 
 🔗 {url}
 
@@ -437,13 +483,20 @@ def main():
             if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
                 continue
 
-            en, it, es, lang = translate_all(raw)
+            en, it, es, fr, de, lang = translate_all(raw)
             hashtags = build_hashtags(species, country, lang)
 
-            msg = build_message(item["name"], species, country, en, it, es, item["page"], hashtags)
+                      msg = build_message(
+                      item["name"],
+                      species,
+                      country,
+                      en, it, es, fr, de,
+                      item["page"],
+                      hashtags
+                                           )
 
-            img = item["images"][0] if item["images"] else None
-            send_post(item["name"], msg, img, image_referer=item["page"])
+img = item["images"][0] if item["images"] else None
+send_post(item["name"], msg, img, image_referer=item["page"])
 
             save_ad(ad_id, item["page"] + "#" + item["name"])
             posted += 1
@@ -488,13 +541,21 @@ def main():
             if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
                 continue
 
-            en, it, es, lang = translate_all(raw)
+            en, it, es, fr, de, lang = translate_all(raw)
             hashtags = build_hashtags(species, country, lang)
 
-            msg = build_message(title.strip(), species, country, en, it, es, link, hashtags)
+                msg = build_message(
+                title.strip(),
+                species,
+                country,
+                en, it, es, fr, de,
+                link,
+                hashtags
+                                          )
 
-            image_url = pick_image_from_feed(e)
-            send_post(title, msg, image_url, image_referer=link)
+image_url = pick_image_from_feed(e)
+send_post(title, msg, image_url, image_referer=link)
+
 
             save_ad(ad_id, link)
             posted += 1
@@ -505,6 +566,7 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 
 

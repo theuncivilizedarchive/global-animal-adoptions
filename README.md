@@ -18,6 +18,7 @@ The goal of this project is to help animals find a home by increasing the visibi
   - English 🇬🇧
   - Italian 🇮🇹
   - Spanish 🇪🇸
+  - German 🇩🇪
 - 🖼️ Smart image handling:
   - Uses feed images when available
   - Scrapes images from websites

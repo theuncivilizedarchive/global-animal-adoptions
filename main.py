@@ -444,33 +444,26 @@ def send_post(title: str, message: str, image_url: str | None, image_referer: st
         print(f"[ERR] Invio fallito: {title} | {e}")
 
 # ======================
-# MAIN
-# ======================
 def main():
     posted = 0
-
+    
     # --- 1) Scraping pagine APA Chioggia
     for page_url, default_species, fixed_country in SCRAPE_SOURCES:
         if posted >= MAX_POSTS_PER_RUN:
             break
-
         try:
             items = scrape_rifugio_page(page_url, default_species=default_species)
         except Exception as e:
             print(f"[ERR] Scrape fallito {page_url}: {e}")
             continue
-
         for item in items:
             if posted >= MAX_POSTS_PER_RUN:
                 break
-
             ad_id = hashlib.sha256((item["page"] + "|" + item["name"]).encode()).hexdigest()
             if already_sent(ad_id):
                 continue
-
             raw = clean_html(item["desc"] or item["name"])
             raw = remove_wp_footer(raw)
-
             # filtro adozioni
             if not looks_like_adoption(item["name"], raw):
                 continue
@@ -490,76 +483,60 @@ def main():
                 item["page"],
                 hashtags
             )
-
-
             img = item["images"][0] if item["images"] else None
             send_post(item["name"], msg, img, image_referer=item["page"])
             save_ad(ad_id, item["page"] + "#" + item["name"])
             posted += 1
             time.sleep(SLEEP_BETWEEN_POSTS_SEC)
-
-# --- 2) RSS feeds
-for feed_url in FEEDS:
-    if posted >= MAX_POSTS_PER_RUN:
-        break
-
-    feed = feedparser.parse(feed_url)
-    if getattr(feed, "bozo", 0):
-        print(f"[WARN] Feed problematico: {feed_url} | {getattr(feed, 'bozo_exception', '')}")
-        continue
-
-    for e in feed.entries:
+    
+    # --- 2) RSS feeds
+    for feed_url in FEEDS:
         if posted >= MAX_POSTS_PER_RUN:
             break
-
-        link = getattr(e, "link", None)
-        title = getattr(e, "title", None)
-        if not link or not title:
+        feed = feedparser.parse(feed_url)
+        if getattr(feed, "bozo", 0):
+            print(f"[WARN] Feed problematico: {feed_url} | {getattr(feed, 'bozo_exception', '')}")
             continue
-
-        ad_id = hashlib.sha256(link.encode()).hexdigest()
-        if already_sent(ad_id):
-            continue
-
-        raw_html = getattr(e, "summary", "") or getattr(e, "description", "") or title
-        raw = clean_html(raw_html)
-        raw = remove_wp_footer(raw)
-
-        # filtro adozioni
-        if not looks_like_adoption(title, raw):
-            continue
-
-        species = detect_species(title, raw, default="other")
-        country = detect_country(link)
-
-        if ALLOWED_SPECIES and species not in ALLOWED_SPECIES:
-            continue
-        if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
-            continue
-
-        en, it, es, fr, de, lang = translate_all(raw)
-        hashtags = build_hashtags(species, country, lang)
-
-        msg = build_message(
-            title.strip(),
-            species,
-            country,
-            en, it, es, fr, de,
-            link,
-            hashtags
-        )
-
-        image_url = pick_image_from_feed(e)
-        send_post(title, msg, image_url, image_referer=link)
-
-        save_ad(ad_id, link)
-        posted += 1
-        time.sleep(SLEEP_BETWEEN_POSTS_SEC)
+        for e in feed.entries:
+            if posted >= MAX_POSTS_PER_RUN:
+                break
+            link = getattr(e, "link", None)
+            title = getattr(e, "title", None)
+            if not link or not title:
+                continue
+            ad_id = hashlib.sha256(link.encode()).hexdigest()
+            if already_sent(ad_id):
+                continue
+            raw_html = getattr(e, "summary", "") or getattr(e, "description", "") or title
+            raw = clean_html(raw_html)
+            raw = remove_wp_footer(raw)
+            # filtro adozioni
+            if not looks_like_adoption(title, raw):
+                continue
+            species = detect_species(title, raw, default="other")
+            country = detect_country(link)
+            if ALLOWED_SPECIES and species not in ALLOWED_SPECIES:
+                continue
+            if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
+                continue
+            en, it, es, fr, de, lang = translate_all(raw)
+            hashtags = build_hashtags(species, country, lang)
+            msg = build_message(
+                title.strip(),
+                species,
+                country,
+                en, it, es, fr, de,
+                link,
+                hashtags
+            )
+            image_url = pick_image_from_feed(e)
+            send_post(title, msg, image_url, image_referer=link)
+            save_ad(ad_id, link)
+            posted += 1
+            time.sleep(SLEEP_BETWEEN_POSTS_SEC)
 
 if __name__ == "__main__":
     try:
         main()
     finally:
         conn.close()
-
-

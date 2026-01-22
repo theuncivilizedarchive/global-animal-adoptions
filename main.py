@@ -142,7 +142,7 @@ def translate_all(text: str):
 
     try:
         lang = detect(text)
-    except:
+    except Exception:
         lang = "en"
 
     en = GoogleTranslator(source=lang, target="en").translate(text)
@@ -503,73 +503,66 @@ send_post(item["name"], msg, img, image_referer=item["page"])
             posted += 1
             time.sleep(SLEEP_BETWEEN_POSTS_SEC)
 
-    # --- 2) RSS feeds
-    for feed_url in FEEDS:
+# --- 2) RSS feeds
+for feed_url in FEEDS:
+    if posted >= MAX_POSTS_PER_RUN:
+        break
+
+    feed = feedparser.parse(feed_url)
+    if getattr(feed, "bozo", 0):
+        print(f"[WARN] Feed problematico: {feed_url} | {getattr(feed, 'bozo_exception', '')}")
+        continue
+
+    for e in feed.entries:
         if posted >= MAX_POSTS_PER_RUN:
             break
 
-        feed = feedparser.parse(feed_url)
-        if getattr(feed, "bozo", 0):
-            print(f"[WARN] Feed problematico: {feed_url} | {getattr(feed, 'bozo_exception', '')}")
+        link = getattr(e, "link", None)
+        title = getattr(e, "title", None)
+        if not link or not title:
             continue
 
-        for e in feed.entries:
-            if posted >= MAX_POSTS_PER_RUN:
-                break
+        ad_id = hashlib.sha256(link.encode()).hexdigest()
+        if already_sent(ad_id):
+            continue
 
-            link = getattr(e, "link", None)
-            title = getattr(e, "title", None)
-            if not link or not title:
-                continue
+        raw_html = getattr(e, "summary", "") or getattr(e, "description", "") or title
+        raw = clean_html(raw_html)
+        raw = remove_wp_footer(raw)
 
-            ad_id = hashlib.sha256(link.encode()).hexdigest()
-            if already_sent(ad_id):
-                continue
+        # filtro adozioni
+        if not looks_like_adoption(title, raw):
+            continue
 
-            raw_html = getattr(e, "summary", "") or getattr(e, "description", "") or title
-            raw = clean_html(raw_html)
-            raw = remove_wp_footer(raw)
+        species = detect_species(title, raw, default="other")
+        country = detect_country(link)
 
-            # filtro adozioni
-            if not looks_like_adoption(title, raw):
-                continue
+        if ALLOWED_SPECIES and species not in ALLOWED_SPECIES:
+            continue
+        if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
+            continue
 
-            species = detect_species(title, raw, default="other")
-            country = detect_country(link)
+        en, it, es, fr, de, lang = translate_all(raw)
+        hashtags = build_hashtags(species, country, lang)
 
-            if ALLOWED_SPECIES and species not in ALLOWED_SPECIES:
-                continue
-            if ALLOWED_COUNTRIES and country not in ALLOWED_COUNTRIES:
-                continue
+        msg = build_message(
+            title.strip(),
+            species,
+            country,
+            en, it, es, fr, de,
+            link,
+            hashtags
+        )
 
-            en, it, es, fr, de, lang = translate_all(raw)
-            hashtags = build_hashtags(species, country, lang)
+        image_url = pick_image_from_feed(e)
+        send_post(title, msg, image_url, image_referer=link)
 
-                msg = build_message(
-                title.strip(),
-                species,
-                country,
-                en, it, es, fr, de,
-                link,
-                hashtags
-                                          )
-
-image_url = pick_image_from_feed(e)
-send_post(title, msg, image_url, image_referer=link)
-
-
-            save_ad(ad_id, link)
-            posted += 1
-            time.sleep(SLEEP_BETWEEN_POSTS_SEC)
+        save_ad(ad_id, link)
+        posted += 1
+        time.sleep(SLEEP_BETWEEN_POSTS_SEC)
 
 if __name__ == "__main__":
     try:
         main()
     finally:
         conn.close()
-
-
-
-
-
-

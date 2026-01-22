@@ -492,9 +492,8 @@ def main():
             )
 
 
-img = item["images"][0] if item["images"] else None
-send_post(item["name"], msg, img, image_referer=item["page"])
-
+            img = item["images"][0] if item["images"] else None
+            send_post(item["name"], msg, img, image_referer=item["page"])
             save_ad(ad_id, item["page"] + "#" + item["name"])
             posted += 1
             time.sleep(SLEEP_BETWEEN_POSTS_SEC)
@@ -562,4 +561,5 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 

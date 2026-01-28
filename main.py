@@ -71,6 +71,9 @@ SCRAPE_SOURCES = [
     ("https://www.empethy.it/lista-animali/adozione-italia/cane", "dog", "IT"),
     ("https://www.empethy.it/lista-animali/adozione-italia/gatto", "cat", "IT"),
     ("https://www.uairifugio.it/i-nostri-cani", "dog", "IT"),
+    ("https://www.adotta.me/ricerca?c=2&d=", "dog", "IT"),
+    ("https://www.adotta.me/ricerca?c=1&d=", "cat", "IT"),
+    ("https://adozionidirette.lav.it/cerca", None, "IT"),
 ]
 
 UA_HEADERS = {
@@ -543,4 +546,5 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 

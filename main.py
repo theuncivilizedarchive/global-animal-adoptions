@@ -68,6 +68,9 @@ SCRAPE_SOURCES = [
     ("https://www.secondechance.org/animal/recherche?department=&species=1", "dog","FR"),
     ("https://www.secondechance.org/animal/recherche?department=&species=2", "cat", "FR"),
     ("https://www.dogstrust.org.uk/rehoming/dogs?page=0&sort=NEW&liveWithCats=false&liveWithDogs=false&liveWithPreschool=false&liveWithPrimary=false&liveWithSecondary=false&noReserved=false&isUnderdog=false&currentDistance=1000", "dog", "EN"),
+    ("https://www.empethy.it/lista-animali/adozione-italia/cane", "dog", "IT"),
+    ("https://www.empethy.it/lista-animali/adozione-italia/gatto", "cat", "IT"),
+    ("https://www.uairifugio.it/i-nostri-cani", "dog", "IT"),
 ]
 
 UA_HEADERS = {
@@ -540,3 +543,4 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+

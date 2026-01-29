@@ -74,6 +74,13 @@ SCRAPE_SOURCES = [
     ("https://www.adotta.me/ricerca?c=2&d=", "dog", "IT"),
     ("https://www.adotta.me/ricerca?c=1&d=", "cat", "IT"),
     ("https://adozionidirette.lav.it/cerca", None, "IT"),
+    ("https://www.aspca.org/nyc/aspca-adoption-center/adoptable-dogs", "dog", "USA-NYC"),
+    ("https://www.aspca.org/nyc/aspca-adoption-center/adoptable-cats", "cat", "USA-NYC"),
+    ("https://www.aspca.org/adopt/los-angeles-adoptable-cats", "cat", "USA-LA"),
+    ("https://www.aspca.org/adopt-pet/north-carolina-adoptable-dogs", "cat", "USA-NC"),
+    ("https://www.aspca.org/animal-care-recovery/cruelty-recovery-center/crc-adoptables", None, "USA-OH"),
+    ("https://www.progettoislander.it/cavalli_adozione/", "horse", "IT"),
+    ("https://www.animaequina.it/blog/files/category-cavalli-in-affidamento.php", "horse", "IT"),
 ]
 
 UA_HEADERS = {
@@ -546,5 +553,6 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 

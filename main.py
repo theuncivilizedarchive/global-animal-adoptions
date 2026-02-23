@@ -46,6 +46,7 @@ FEEDS = [
     "https://www.animalleague.org/blog/feed/",
     "https://tears.org.za/feed/",
     "https://www.dogsblog.com/feed/",
+    "https://aquariumia.com/feed/",
 ]
 
 # Pagine senza RSS (scraping)
@@ -81,6 +82,8 @@ SCRAPE_SOURCES = [
     ("https://www.aspca.org/animal-care-recovery/cruelty-recovery-center/crc-adoptables", None, "USA-OH"),
     ("https://www.progettoislander.it/cavalli_adozione/", "horse", "IT"),
     ("https://www.animaequina.it/blog/files/category-cavalli-in-affidamento.php", "horse", "IT"),
+    ("https://flipaquatics.com/collections/all-nano-fish", "fish", "USA"),
+    ("https://www.proteusreptiletrust.org/portfolio-collections/snakes-for-adoption", "snake", "USA"),
 ]
 
 UA_HEADERS = {
@@ -553,6 +556,7 @@ if __name__ == "__main__":
         main()
     finally:
         conn.close()
+
 
 
 
